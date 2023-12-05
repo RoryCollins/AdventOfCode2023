@@ -13,7 +13,7 @@ public static class ListExtensions
         var i = 0;
         while(i + size <= array.Length)
         {
-            yield return array.Skip(i + step - 1)
+            yield return array.Skip(i)
                 .Take(size)
                 .ToArray();
             i += step;
