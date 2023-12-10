@@ -29,7 +29,7 @@ public class Solution
                 bool valid = false;
                 for (int j = number.Index; j < number.Index + number.Length; j++)
                 {
-                    var neighbours = grid.GetNeighbours(new Coordinate2D(i, j)).ToList();
+                    var neighbours = grid.GetNeighbours(new Coordinate2D(i, j), true).ToList();
                     var stars = neighbours.Where(it => input[it.X][it.Y] == '*');
                     foreach (var starCoordinate in stars)
                     {

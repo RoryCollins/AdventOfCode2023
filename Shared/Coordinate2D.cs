@@ -12,22 +12,30 @@ public record Coordinate2D(int X, int Y)
 
 public record Grid(int XSize, int YSize)
 {
-    public IEnumerable<Coordinate2D> GetNeighbours(Coordinate2D centre)
+    public IEnumerable<Coordinate2D> GetNeighbours(Coordinate2D centre, bool includeDiagonals)
     {
         var directions = new[]
         {
             new Coordinate2D(-1, 0),
-            new Coordinate2D(-1, 1),
             new Coordinate2D(0, 1),
-            new Coordinate2D(1, 1),
             new Coordinate2D(1, 0),
-            new Coordinate2D(1, -1),
             new Coordinate2D(0, -1),
-            new Coordinate2D(-1, -1),
         };
+
+        if (includeDiagonals)
+        {
+            directions = directions.Concat(new[]
+                {
+                    new Coordinate2D(-1, 1),
+                    new Coordinate2D(1, 1),
+                    new Coordinate2D(1, -1),
+                    new Coordinate2D(-1, -1),
+                }
+            ).ToArray();
+        }
+
         return directions.Select(centre.Add)
             .Where(it => (it.X >= 0 && it.X < XSize)
                          && (it.Y >= 0 && it.Y < YSize));
     }
-
 }
