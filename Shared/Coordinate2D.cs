@@ -7,6 +7,11 @@ public record Coordinate2D(int X, int Y)
         return new Coordinate2D(X + other.X, Y + other.Y);
     }
 
+    public int ManhattanDistanceTo(Coordinate2D other)
+    {
+        return Math.Abs(X - other.X) + Math.Abs(Y - other.Y);
+    }
+
     public static Coordinate2D Origin => new(0, 0);
     public static Coordinate2D North => new(0, 1);
     public static Coordinate2D South => new(0, -1);

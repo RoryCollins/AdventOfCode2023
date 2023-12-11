@@ -27,4 +27,18 @@ public static class ListExtensions
             prefix.Append(s),
             remainder.Take(i).Concat(remainder.Skip(i + 1)).ToArray()));
     }
+
+    public static IEnumerable<(T,T)> ChooseTwo<T>(this IEnumerable<T> source)
+    {
+        var newSource = source.ToList();
+        for (int i = 0; i < newSource.Count - 1; i++)
+        {
+            for (int m = i + 1; m < newSource.Count; m++)
+            {
+                yield return (newSource[i], newSource[m]);
+            }
+
+        }
+    }
+
 }
