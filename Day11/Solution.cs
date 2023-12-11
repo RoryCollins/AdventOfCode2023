@@ -8,6 +8,7 @@ public class Solution
     private readonly List<string> input;
     private List<string> expandedCosmos = new();
     private HashSet<Coordinate2D> galaxies = new();
+    private Dictionary<Coordinate2D, Coordinate2D> galaxyGrids = new();
 
     public Solution(List<string> input)
     {
@@ -23,33 +24,72 @@ public class Solution
 
     public object PartTwo()
     {
-        return "Not yet implemented";
+        var ys = new List<int>();
+        var xs = new List<int>();
+
+        for (int y = 0; y < input.Count; y++)
+        {
+            if (input[y].Contains('#')) continue;
+            ys.Add(y);
+        }
+        ys.Add(input.Count);
+
+        for (int x = 0; x < input[0].Length; x++)
+        {
+            if (input.Any(it => it[x] == '#')) continue;
+            xs.Add(x);
+        }
+        xs.Add(input[0].Length);
+
+        galaxies = FindGalaxies(input);
+        foreach (var galaxy in galaxies)
+        {
+            var gridx = xs.IndexOf(xs.First(it => galaxy.X < it));
+            var gridy = ys.IndexOf(ys.First(it => galaxy.Y < it));
+
+            galaxyGrids.Add(galaxy, new Coordinate2D(gridx, gridy));
+        }
+
+        return galaxies.ChooseTwo()
+            .Sum(pair => GalacticDistance(pair, 1_000_000));
     }
 
-    private List<string> ExpandCosmos(List<string> cosmos)
+    private long GalacticDistance((Coordinate2D, Coordinate2D) pair, int expansions)
     {
-        for (int y = 0; y < cosmos.Count; y++)
-        {
-            if (cosmos[y].Contains('#')) continue;
+        var c1 = pair.Item1;
+        var c2 = pair.Item2;
+        if (galaxyGrids[c1] == galaxyGrids[c2]) return c1.ManhattanDistanceTo(c2);
+        var expansionDistance = (long)((expansions-1) * galaxyGrids[c1]
+            .ManhattanDistanceTo(galaxyGrids[c2]));
+        return c1.ManhattanDistanceTo(c2) + expansionDistance;
+    }
 
-            cosmos.Insert(y, cosmos[y]);
+    private List<string> ExpandCosmos(IEnumerable<string> previousCosmos)
+    {
+
+        var nextCosmos = previousCosmos.ToList();
+        for (int y = 0; y < nextCosmos.Count; y++)
+        {
+            if (nextCosmos[y].Contains('#')) continue;
+
+            nextCosmos.Insert(y, nextCosmos[y]);
             y++;
         }
 
-        for (int x = 0; x < cosmos[0].Length; x++)
+        for (int x = 0; x < nextCosmos[0].Length; x++)
         {
-            if (cosmos.Any(it => it[x] == '#')) continue;
+            if (nextCosmos.Any(it => it[x] == '#')) continue;
 
-            for (int y = 0; y < cosmos.Count; y++)
+            for (int y = 0; y < nextCosmos.Count; y++)
             {
-                cosmos[y] = cosmos[y]
+                nextCosmos[y] = nextCosmos[y]
                     .Insert(x, ".");
             }
 
             x++;
         }
 
-        return cosmos;
+        return nextCosmos;
     }
 
     private HashSet<Coordinate2D> FindGalaxies(List<string> cosmos)
