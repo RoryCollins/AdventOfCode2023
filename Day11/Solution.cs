@@ -5,17 +5,54 @@ using Shared;
 
 public class Solution
 {
-    private readonly List<string> cosmos;
+    private readonly List<string> input;
+    private List<string> expandedCosmos = new();
     private HashSet<Coordinate2D> galaxies = new();
 
     public Solution(List<string> input)
     {
-        cosmos = input;
-        ExpandCosmos();
-        galaxies = FindGalaxies();
+        this.input = input;
     }
 
-    private HashSet<Coordinate2D> FindGalaxies()
+    public object PartOne()
+    {
+        expandedCosmos = ExpandCosmos(input);
+        galaxies = FindGalaxies(expandedCosmos);
+        return galaxies.ChooseTwo().Sum(it => it.Item1.ManhattanDistanceTo(it.Item2));
+    }
+
+    public object PartTwo()
+    {
+        return "Not yet implemented";
+    }
+
+    private List<string> ExpandCosmos(List<string> cosmos)
+    {
+        for (int y = 0; y < cosmos.Count; y++)
+        {
+            if (cosmos[y].Contains('#')) continue;
+
+            cosmos.Insert(y, cosmos[y]);
+            y++;
+        }
+
+        for (int x = 0; x < cosmos[0].Length; x++)
+        {
+            if (cosmos.Any(it => it[x] == '#')) continue;
+
+            for (int y = 0; y < cosmos.Count; y++)
+            {
+                cosmos[y] = cosmos[y]
+                    .Insert(x, ".");
+            }
+
+            x++;
+        }
+
+        return cosmos;
+    }
+
+    private HashSet<Coordinate2D> FindGalaxies(List<string> cosmos)
     {
         var gs = new HashSet<Coordinate2D>();
         for (int y = 0; y < cosmos.Count; y++)
@@ -28,42 +65,5 @@ public class Solution
         }
 
         return gs;
-    }
-
-    private void ExpandCosmos()
-    {
-        for (int y = 0; y < cosmos.Count; y++)
-        {
-            if (!cosmos[y]
-                    .Contains('#'))
-            {
-                cosmos.Insert(y, cosmos[y]);
-                y++;
-            }
-        }
-
-        for (int x = 0; x < cosmos[0].Length; x++)
-        {
-            if (cosmos.All(it => it[x] == '.'))
-            {
-                for (int y = 0; y < cosmos.Count; y++)
-                {
-                    cosmos[y] = cosmos[y]
-                        .Insert(x, ".");
-                }
-
-                x++;
-            }
-        }
-    }
-
-    public object PartOne()
-    {
-        return galaxies.ChooseTwo().Sum(it => it.Item1.ManhattanDistanceTo(it.Item2));
-    }
-
-    public object PartTwo()
-    {
-        return "Not yet implemented";
     }
 }
