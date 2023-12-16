@@ -14,19 +14,6 @@ public class Solution
 
     public object PartOne()
     {
-        // var foo = Enumerable.Range(1, 20);
-        // var p = platform;
-        // foreach (var i in foo)
-        // {
-        //     p = p.Cycle()
-        //         .ToList();
-        //     var f = p
-        //         .Select((row, index) => row.Count(c => c == 'O') * (xSize - index))
-        //         .Sum();
-        //     Console.WriteLine($"{i}: {f}");
-        // }
-
-        // return "fooo";
         return platform.TiltNorth()
         .Select((row, index) => row.Count(c => c == 'O') * (xSize-index))
         .Sum();
@@ -66,18 +53,5 @@ public class Solution
         return q
             .Select((row, index) => row.Count(c => c == 'O') * (xSize - index))
             .Sum();
-    }
-}
-
-class PlatformComparer : IEqualityComparer<List<string>>
-{
-    public bool Equals(List<string>? x, List<string>? y)
-    {
-        return y != null && (x?.SequenceEqual(y) ?? false);
-    }
-
-    public int GetHashCode(List<string> obj)
-    {
-        return obj.Aggregate(0, (current, t) => current ^ t.GetHashCode());
     }
 }
