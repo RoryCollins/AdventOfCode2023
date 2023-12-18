@@ -9,13 +9,10 @@ public class Solution
     private Dictionary<Coordinate2D, Dictionary<Coordinate2D, int>> starLookups = new();
     private Grid grid;
 
-    public Solution(IEnumerable<string> input)
+    public Solution(List<string> input)
     {
-        this.input = input.ToList();
-        grid = new Grid(
-            this.input.Count,
-            this.input.First()
-                .Length);
+        this.input = input;
+        grid = new Grid(input);
     }
 
     public object PartOne()
