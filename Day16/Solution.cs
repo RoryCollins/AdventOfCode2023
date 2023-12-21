@@ -38,7 +38,7 @@ public class Solution
         var beams = new List<Beam>();
         visitedCoordinates.Add(beam.Location);
         var newLocation = beam.Location.Move(beam.Direction);
-        var newDirection = beam.Direction;
+        Direction newDirection;
         switch (grid.At(beam.Location))
         {
             case '.':
@@ -89,10 +89,10 @@ public class Solution
     public object PartTwo()
     {
         var m = 0;
-        var xEdges = Enumerable.Range(0, grid.XSize)
-            .SelectMany(it => new[] { new Beam(new Coordinate2D(it, 0), North), new Beam(new Coordinate2D(it, grid.YSize-1), South) });
-        var yEdges = Enumerable.Range(0, grid.YSize)
-            .SelectMany(it => new[] { new Beam(new Coordinate2D(0, it), East), new Beam(new Coordinate2D(grid.XSize-1, it), West)});
+        var xEdges = Enumerable.Range(0, grid.Width)
+            .SelectMany(it => new[] { new Beam(new Coordinate2D(it, 0), North), new Beam(new Coordinate2D(it, grid.Height-1), South) });
+        var yEdges = Enumerable.Range(0, grid.Height)
+            .SelectMany(it => new[] { new Beam(new Coordinate2D(0, it), East), new Beam(new Coordinate2D(grid.Width-1, it), West)});
         var allEdges = xEdges.Concat(yEdges);
         foreach (var b in allEdges)
         {

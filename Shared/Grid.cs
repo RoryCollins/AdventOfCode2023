@@ -2,22 +2,20 @@ namespace Shared;
 
 public class Grid
 {
-    public int XSize;
-    public int YSize;
+    public int Width;
+    public int Height;
     private readonly List<string> contents;
 
     public Grid(List<string> input)
     {
-        YSize = input.Count;
-        XSize = input[0].Length;
+        Height = input.Count;
+        Width = input[0].Length;
         contents = input;
         contents.Reverse();
     }
 
-    public Coordinate2D TopLeft()
-    {
-        return new Coordinate2D(0, YSize - 1);
-    }
+    public Coordinate2D TopLeft() => new(0, Height - 1);
+    public Coordinate2D BottomRight() => new(Width-1, 0);
 
     public IEnumerable<Coordinate2D> GetNeighbours(Coordinate2D centre, bool includeDiagonals)
     {
@@ -48,8 +46,8 @@ public class Grid
 
     public bool IsOnGrid(Coordinate2D coordinate)
     {
-        return (coordinate.X >= 0 && coordinate.X < XSize)
-               && (coordinate.Y >= 0 && coordinate.Y < YSize);
+        return (coordinate.X >= 0 && coordinate.X < Width)
+               && (coordinate.Y >= 0 && coordinate.Y < Height);
     }
 
     public char At(Coordinate2D coordinate)
