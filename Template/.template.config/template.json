@@ -4,5 +4,8 @@
     "description": "Framework for daily AdventOfCode challenges",
     "identity":"RoryCollins.AdventDay.1.0",
     "shortName": "adventdaytemplate",
-    "sourceName": "Template"
+    "sourceName": "Template",
+    "tags": {
+        "language":"C#"
+    }
 }

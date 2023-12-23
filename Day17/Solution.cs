@@ -57,7 +57,7 @@ public class Solution
             }
         }
 
-        throw new NoSolutionFoundException();
+        throw new ProgrammerMistake();
     }
 
     private IEnumerable<State> GetNeighbours(State current, int min, int max)

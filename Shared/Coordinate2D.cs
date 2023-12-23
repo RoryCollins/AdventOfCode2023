@@ -17,6 +17,8 @@ public record Coordinate2D(int X, int Y)
         return new Coordinate2D(X + other.X, Y + other.Y);
     }
 
+    public static Coordinate2D operator *(Coordinate2D c, int x) => new(c.X * x, c.Y * x);
+
     public Coordinate2D Move(Direction direction)
     {
         var d =  direction switch
@@ -44,4 +46,16 @@ public record Coordinate2D(int X, int Y)
     public static Coordinate2D SouthWest => new(-1, -1);
     public static Coordinate2D NorthEast => new(1, 1);
     public static Coordinate2D NorthWest => new(-1, 1);
+
+    public static Coordinate2D FromDirection(Direction direction)
+    {
+        return direction switch
+        {
+            Direction.North => North,
+            Direction.South => South,
+            Direction.West => West,
+            Direction.East => East,
+            _ => throw new ProgrammerMistake()
+        };
+    }
 }
