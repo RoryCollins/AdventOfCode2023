@@ -1,0 +1,8 @@
+{
+    "author": "Rory Collins",
+    "name": "AdventOfCode template",
+    "description": "Framework for daily AdventOfCode challenges",
+    "identity":"RoryCollins.AdventDay.1.0",
+    "shortName": "adventdaytemplate",
+    "sourceName": "Template"
+}
