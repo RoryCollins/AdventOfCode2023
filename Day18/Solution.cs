@@ -1,4 +1,3 @@
-using System.Collections;
 using System.Text.RegularExpressions;
 using Shared;
 using static Shared.Direction;
@@ -9,6 +8,8 @@ public class Solution
 {
     private readonly IEnumerable<(Direction Direction, int Steps)> commands;
     private HashSet<Coordinate2D> boundaryCoordinates;
+    private HashSet<Coordinate2D> corners = new();
+    private Dictionary<int, HashSet<int>> xs;
     private readonly List<Coordinate2D> interiorCoordinates = [];
 
 
@@ -36,51 +37,124 @@ public class Solution
     {
         var start = Coordinate2D.Origin;
         boundaryCoordinates = commands.Aggregate(new HashSet<Coordinate2D> { start },
-            (acc, c) => acc.Concat(ProcessCommand(acc.Last(), c.Direction, c.Steps)).ToHashSet());
+            (acc, c) =>
+            {
+                corners.Add(acc.Last());
+                return acc.Concat(ProcessCommand(acc.Last(), c.Direction, c.Steps)).ToHashSet();
+            });
 
         var yMax = boundaryCoordinates.Max(it => it.Y);
         var topLeftInsideBorder = boundaryCoordinates
             .Where(it => it.Y == yMax - 1)
             .MinBy(it => it.X)?
             .Move(East) ?? throw new ProgrammerMistake();
-        
-        Fill(topLeftInsideBorder);
+
+        Fill2(topLeftInsideBorder);
 
         PrintMap();
 
-        return boundaryCoordinates.Count + interiorCoordinates.Count;
+        return boundaryCoordinates.Count;
     }
 
+    private int GetAreaByShoelaceFormula()
+    {
+        var cs = new HashSet<Coordinate2D>
+        {
+            new(1, 6),
+            new(3, 1),
+            new(7, 2),
+            new(4, 4),
+            new(8, 5),
+        };
+        var windows = corners.ToList()
+            .Append(corners.First())
+            .Windowed(2)
+            .Select(it => (it.First().X * it.Last().Y) - (it.First().Y * it.Last().X));
+        return Math.Abs(windows.Sum() / 2);
+    }
+
+    private void Fill2(Coordinate2D start)
+    {
+        var yMin = boundaryCoordinates.Min(it => it.Y);
+        var yMax = boundaryCoordinates.Max(it => it.Y);
+        var xsByY = boundaryCoordinates
+            .GroupBy(it => it.Y)
+            .ToDictionary(c => c.Key, c => c.Select(it => it.X).Order());
+        
+        var s = new Queue<(int LX, int RX, int Y, int dY)>();
+        s.Enqueue((start.X, start.X, start.Y, -1));
+        while (s.Count > 0)
+        {
+            var (lx, rx, y, dy) = s.Dequeue();
+            if (y == yMin) continue;
+            if (y == yMax) continue;
+            if (Inside(lx, y))
+            {
+                var newLx = xsByY[y].LastOrDefault(it => it < lx, lx)+1;
+                var newRx = xsByY[y].FirstOrDefault(it => it > rx, rx);
+                if(newLx < lx) s.Enqueue((newLx, lx, y-dy, -dy));
+                if(newRx >= rx) s.Enqueue((rx, newRx, y-dy, -dy));
+                lx = newLx;
+                rx = newRx;
+                
+                for (int i = lx; i < rx; i++)
+                {
+                    interiorCoordinates.Add(new (i, y));
+                }
+                
+            }
+
+
+            for(int i = lx; i < rx-1; i++)
+            {
+                if (xsByY[y+dy].Contains(i))
+                {
+                    continue;
+                }
+
+                var rangeStart = i;
+                var rangeEnd = xsByY[y+dy].FirstOrDefault(it => it > i, rx+1)-1;
+                s.Enqueue((rangeStart, rangeEnd, y+dy, dy));
+                i = rangeEnd;
+            }
+        }
+    }
     private void Fill(Coordinate2D start)
     {
         var s = new Queue<(int, int, int, int)>();
         s.Enqueue((start.X, start.X, start.Y, 1));
         s.Enqueue((start.X, start.X, start.Y - 1, -1));
+        var xsByY = boundaryCoordinates
+            .GroupBy(it => it.Y)
+            .ToDictionary(c => c.Key, c => c.Select(it => it.X).Order());
         while (s.Count > 0)
         {
             var (x1, x2, y, dy) = s.Dequeue();
             var x = x1;
             if (Inside(x, y))
             {
-                while (Inside(x - 1, y))
+                x = xsByY[y].Where(it => it < x).Max();
+                for (int i = x; i < x1; i++)
                 {
-                    interiorCoordinates.Add(new(x - 1, y));
-                    x = x - 1;
+                    interiorCoordinates.Add(new(i, y));
                 }
 
                 if (x < x1)
                 {
+                    // go back up
                     s.Enqueue((x, x1 - 1, y - dy, -dy));
                 }
             }
 
             while (x1 <= x2)
             {
-                while (Inside(x1, y))
+                var newX1 = xsByY[y].First(it => it >= x1);
+                for (int i = x1; i < newX1; i++)
                 {
-                    interiorCoordinates.Add(new(x1, y));
-                    x1++;
+                    interiorCoordinates.Add(new(i, y));
                 }
+
+                x1 = newX1;
 
                 if (x1 > x)
                 {
