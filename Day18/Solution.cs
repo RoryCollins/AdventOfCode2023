@@ -53,7 +53,7 @@ public class Solution
 
         PrintMap();
 
-        return boundaryCoordinates.Count;
+        return boundaryCoordinates.Count + interiorCoordinates.Count;
     }
 
     private int GetAreaByShoelaceFormula()
@@ -87,7 +87,6 @@ public class Solution
         {
             var (lx, rx, y, dy) = s.Dequeue();
             if (y == yMin) continue;
-            if (y == yMax) continue;
             if (Inside(lx, y))
             {
                 var newLx = xsByY[y].LastOrDefault(it => it < lx, lx);
@@ -107,24 +106,7 @@ public class Solution
                         i = rangeEnd;
                     }
                 }
-                if (newRx > rx+1)
-                {
-                    for (int i = rx+1; i < newRx; i++)
-                    {
-                        if (xsByY[y - dy].Contains(i))
-                        {
-                            continue;
-                        }
 
-                        var rangeStart = i;
-                        var rangeEnd = xsByY[y - dy].FirstOrDefault(it => it > i, newRx) - 1;
-                        s.Enqueue((rangeStart, rangeEnd, y-dy, -dy));
-                        i = rangeEnd;
-                    }
-                }
-
-                // if(newLx < lx) s.Enqueue((newLx, lx, y-dy, -dy));
-                // if(newRx >= rx) s.Enqueue((rx, newRx, y-dy, -dy));
                 lx = newLx;
                 rx = newRx;
 
@@ -144,6 +126,21 @@ public class Solution
 
                 var rangeStart = i;
                 var rangeEnd = xsByY[y + dy].FirstOrDefault(it => it > i, rx + 1) - 1;
+                if (rangeEnd > rx)
+                {
+                    for (int j = rx+1; j < rangeEnd; j++)
+                    {
+                        if (xsByY[y].Contains(j))
+                        {
+                            continue;
+                        }
+                        
+                        var nrangeStart = j;
+                        var nrangeEnd = xsByY[y - dy].FirstOrDefault(it => it > j, rx + 1) - 1;
+                        s.Enqueue((nrangeStart, nrangeEnd, y, -dy));
+                        j = rangeEnd;
+                    }
+                }
                 s.Enqueue((rangeStart, rangeEnd, y + dy, dy));
                 i = rangeEnd;
             }
