@@ -10,7 +10,7 @@ public class Solution
     private HashSet<Coordinate2D> boundaryCoordinates;
     private HashSet<Coordinate2D> corners = new();
     private Dictionary<int, HashSet<int>> xs;
-    private readonly List<Coordinate2D> interiorCoordinates = [];
+    private readonly HashSet<Coordinate2D> interiorCoordinates = [];
 
 
     public Solution(List<string> input)
@@ -80,7 +80,7 @@ public class Solution
         var xsByY = boundaryCoordinates
             .GroupBy(it => it.Y)
             .ToDictionary(c => c.Key, c => c.Select(it => it.X).Order());
-        
+
         var s = new Queue<(int LX, int RX, int Y, int dY)>();
         s.Enqueue((start.X, start.X, start.Y, -1));
         while (s.Count > 0)
@@ -90,35 +90,66 @@ public class Solution
             if (y == yMax) continue;
             if (Inside(lx, y))
             {
-                var newLx = xsByY[y].LastOrDefault(it => it < lx, lx)+1;
+                var newLx = xsByY[y].LastOrDefault(it => it < lx, lx);
                 var newRx = xsByY[y].FirstOrDefault(it => it > rx, rx);
-                if(newLx < lx) s.Enqueue((newLx, lx, y-dy, -dy));
-                if(newRx >= rx) s.Enqueue((rx, newRx, y-dy, -dy));
+                if (newLx < lx)
+                {
+                    for (int i = newLx; i < lx - 1; i++)
+                    {
+                        if (xsByY[y - dy].Contains(i))
+                        {
+                            continue;
+                        }
+
+                        var rangeStart = i;
+                        var rangeEnd = xsByY[y - dy].FirstOrDefault(it => it > i, rx + 1) - 1;
+                        s.Enqueue((rangeStart, rangeEnd, y-dy, -dy));
+                        i = rangeEnd;
+                    }
+                }
+                if (newRx > rx+1)
+                {
+                    for (int i = rx+1; i < newRx; i++)
+                    {
+                        if (xsByY[y - dy].Contains(i))
+                        {
+                            continue;
+                        }
+
+                        var rangeStart = i;
+                        var rangeEnd = xsByY[y - dy].FirstOrDefault(it => it > i, newRx) - 1;
+                        s.Enqueue((rangeStart, rangeEnd, y-dy, -dy));
+                        i = rangeEnd;
+                    }
+                }
+
+                // if(newLx < lx) s.Enqueue((newLx, lx, y-dy, -dy));
+                // if(newRx >= rx) s.Enqueue((rx, newRx, y-dy, -dy));
                 lx = newLx;
                 rx = newRx;
-                
+
                 for (int i = lx; i < rx; i++)
                 {
-                    interiorCoordinates.Add(new (i, y));
+                    interiorCoordinates.Add(new(i, y));
                 }
-                
             }
 
 
-            for(int i = lx; i < rx-1; i++)
+            for (int i = lx; i < rx - 1; i++)
             {
-                if (xsByY[y+dy].Contains(i))
+                if (xsByY[y + dy].Contains(i))
                 {
                     continue;
                 }
 
                 var rangeStart = i;
-                var rangeEnd = xsByY[y+dy].FirstOrDefault(it => it > i, rx+1)-1;
-                s.Enqueue((rangeStart, rangeEnd, y+dy, dy));
+                var rangeEnd = xsByY[y + dy].FirstOrDefault(it => it > i, rx + 1) - 1;
+                s.Enqueue((rangeStart, rangeEnd, y + dy, dy));
                 i = rangeEnd;
             }
         }
     }
+
     private void Fill(Coordinate2D start)
     {
         var s = new Queue<(int, int, int, int)>();
@@ -199,6 +230,7 @@ public class Solution
                     Console.Write('#');
                     continue;
                 }
+
                 if (interiorCoordinates.Contains(c))
                 {
                     Console.Write('X');
