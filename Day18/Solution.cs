@@ -58,14 +58,6 @@ public class Solution
 
     private int GetAreaByShoelaceFormula()
     {
-        var cs = new HashSet<Coordinate2D>
-        {
-            new(1, 6),
-            new(3, 1),
-            new(7, 2),
-            new(4, 4),
-            new(8, 5),
-        };
         var windows = corners.ToList()
             .Append(corners.First())
             .Windowed(2)
@@ -128,7 +120,7 @@ public class Solution
                 var rangeEnd = xsByY[y + dy].FirstOrDefault(it => it > i, rx + 1) - 1;
                 if (rangeEnd > rx)
                 {
-                    for (int j = rx+1; j < rangeEnd; j++)
+                    for (int j = rx+1; j <= rangeEnd; j++)
                     {
                         if (xsByY[y].Contains(j))
                         {
@@ -143,64 +135,6 @@ public class Solution
                 }
                 s.Enqueue((rangeStart, rangeEnd, y + dy, dy));
                 i = rangeEnd;
-            }
-        }
-    }
-
-    private void Fill(Coordinate2D start)
-    {
-        var s = new Queue<(int, int, int, int)>();
-        s.Enqueue((start.X, start.X, start.Y, 1));
-        s.Enqueue((start.X, start.X, start.Y - 1, -1));
-        var xsByY = boundaryCoordinates
-            .GroupBy(it => it.Y)
-            .ToDictionary(c => c.Key, c => c.Select(it => it.X).Order());
-        while (s.Count > 0)
-        {
-            var (x1, x2, y, dy) = s.Dequeue();
-            var x = x1;
-            if (Inside(x, y))
-            {
-                x = xsByY[y].Where(it => it < x).Max();
-                for (int i = x; i < x1; i++)
-                {
-                    interiorCoordinates.Add(new(i, y));
-                }
-
-                if (x < x1)
-                {
-                    // go back up
-                    s.Enqueue((x, x1 - 1, y - dy, -dy));
-                }
-            }
-
-            while (x1 <= x2)
-            {
-                var newX1 = xsByY[y].First(it => it >= x1);
-                for (int i = x1; i < newX1; i++)
-                {
-                    interiorCoordinates.Add(new(i, y));
-                }
-
-                x1 = newX1;
-
-                if (x1 > x)
-                {
-                    s.Enqueue((x, x1 - 1, y + dy, dy));
-                }
-
-                if (x1 - 1 > x2)
-                {
-                    s.Enqueue((x2 + 1, x1 - 1, y - dy, -dy));
-                }
-
-                x1++;
-                while (x1 < x2 && !Inside(x1, y))
-                {
-                    x1++;
-                }
-
-                x = x1;
             }
         }
     }
