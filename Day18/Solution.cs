@@ -50,10 +50,14 @@ public class Solution
             .Move(East) ?? throw new ProgrammerMistake();
 
         Fill2(topLeftInsideBorder);
+        var area = GetAreaByShoelaceFormula();
+        var f = area - (boundaryCoordinates.Count / 2) + 1;
 
-        PrintMap();
+        Console.WriteLine(f + boundaryCoordinates.Count);
 
-        return boundaryCoordinates.Count + interiorCoordinates.Count;
+        // PrintMap();
+
+        return boundaryCoordinates.Count + interiorCoordinates.Count - boundaryCoordinates.Count(it => interiorCoordinates.Contains(it));
     }
 
     private int GetAreaByShoelaceFormula()
