@@ -1,6 +1,6 @@
 ﻿using Day19;
 
-var input = File.ReadAllLines("sample_input.txt").ToList();
+var input = File.ReadAllText("input.txt");
 var solution = new Solution(input);
 
 Console.WriteLine($"Part one: {solution.PartOne()}");
