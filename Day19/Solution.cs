@@ -7,7 +7,58 @@ public class Solution
 {
     private record Part(int X, int M, int A, int S);
 
-    private readonly Dictionary<string, IEnumerable<Func<Part, string?>>> workflows;
+    private class Workflow
+    {
+        private IEnumerable<Func<Part, string?>> processes;
+
+        public Workflow(string definition)
+        {
+            processes = definition.Split(',')
+                .Select(
+                    condition =>
+                    {
+                        var m = Regex.Match(condition,
+                            @"(?<component>x|m|a|s)(?<comparator>\<|\>)(?<value>\d+):(?<destination>\w+)");
+                        if (!m.Success)
+                        {
+                            return new Func<Part, string?>(_ => condition);
+                        }
+
+                        return p =>
+                        {
+                            var component = m.Groups["component"].Value switch
+                            {
+                                "x" => p.X,
+                                "m" => p.M,
+                                "a" => p.A,
+                                "s" => p.S,
+                                _ => throw new ProgrammerMistake()
+                            };
+                            bool pass = m.Groups["comparator"].Value switch
+                            {
+                                ">" => component > int.Parse(m.Groups["value"].Value),
+                                "<" => component < int.Parse(m.Groups["value"].Value),
+                                _ => throw new ProgrammerMistake()
+                            };
+                            return pass ? m.Groups["destination"].Value : null;
+                        };
+                    });
+        }
+
+        public string Process(Part part)
+        {
+            foreach (var condition in processes)
+            {
+                var result = condition(part);
+                if (result is null) continue;
+                return result;
+            }
+
+            throw new ProgrammerMistake();
+        }
+    }
+
+    private readonly Dictionary<string, Workflow> workflows;
     private readonly List<Part> parts;
 
     public Solution(string input)
@@ -16,36 +67,8 @@ public class Solution
         workflows = b[0].Split("\n")
             .Select(line => (
                 Name: line[..line.IndexOf('{')],
-                Conditions: line[(line.IndexOf('{') + 1)..line.IndexOf('}')]
-                    .Split(',')
-                    .Select(
-                        condition =>
-                        {
-                            var m = Regex.Match(condition,
-                                @"(?<component>x|m|a|s)(?<comparator>\<|\>)(?<value>\d+):(?<destination>\w+)");
-                            if (!m.Success)
-                            {
-                                return new Func<Part, string?>(_ => condition);
-                            }
-                            return p =>
-                            {
-                                var component = m.Groups["component"].Value switch
-                                {
-                                    "x" => p.X,
-                                    "m" => p.M,
-                                    "a" => p.A,
-                                    "s" => p.S,
-                                    _ => throw new ProgrammerMistake()
-                                };
-                                bool pass = m.Groups["comparator"].Value switch
-                                {
-                                    ">" => component > int.Parse(m.Groups["value"].Value),
-                                    "<" => component < int.Parse(m.Groups["value"].Value),
-                                    _ => throw new ProgrammerMistake()
-                                };
-                                return pass ? m.Groups["destination"].Value : null;
-                            };
-                        }))).ToDictionary(m => m.Name, m => m.Conditions);
+                Workflow: new Workflow(line[(line.IndexOf('{') + 1)..line.IndexOf('}')])
+            )).ToDictionary(m => m.Name, m => m.Workflow);
 
         parts = b[1].Split("\n")
             .Select(it => Regex.Matches(it, @"\d+").Select(m => int.Parse(m.Value)).ToList())
@@ -62,14 +85,9 @@ public class Solution
             var flow = "in";
             while (true)
             {
-                foreach (var condition in workflows[flow])
-                {
-                    var result = condition(part);
-                    if(result is null) continue;
-                    flow = result;
-                    break;
-                }
-                if(flow is "A") acceptedPile.Add(part);
+                flow = workflows[flow].Process(part);
+
+                if (flow is "A") acceptedPile.Add(part);
                 if (flow is "A" or "R") break;
             }
         }
