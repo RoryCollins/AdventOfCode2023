@@ -1,63 +1,9 @@
 using System.Text.RegularExpressions;
-using Shared;
 
 namespace Day19;
 
 public class Solution
 {
-    private record Part(int X, int M, int A, int S);
-
-    private class Workflow
-    {
-        private IEnumerable<Func<Part, string?>> processes;
-
-        public Workflow(string definition)
-        {
-            processes = definition.Split(',')
-                .Select(
-                    condition =>
-                    {
-                        var m = Regex.Match(condition,
-                            @"(?<component>x|m|a|s)(?<comparator>\<|\>)(?<value>\d+):(?<destination>\w+)");
-                        if (!m.Success)
-                        {
-                            return new Func<Part, string?>(_ => condition);
-                        }
-
-                        return p =>
-                        {
-                            var component = m.Groups["component"].Value switch
-                            {
-                                "x" => p.X,
-                                "m" => p.M,
-                                "a" => p.A,
-                                "s" => p.S,
-                                _ => throw new ProgrammerMistake()
-                            };
-                            bool pass = m.Groups["comparator"].Value switch
-                            {
-                                ">" => component > int.Parse(m.Groups["value"].Value),
-                                "<" => component < int.Parse(m.Groups["value"].Value),
-                                _ => throw new ProgrammerMistake()
-                            };
-                            return pass ? m.Groups["destination"].Value : null;
-                        };
-                    });
-        }
-
-        public string Process(Part part)
-        {
-            foreach (var condition in processes)
-            {
-                var result = condition(part);
-                if (result is null) continue;
-                return result;
-            }
-
-            throw new ProgrammerMistake();
-        }
-    }
-
     private readonly Dictionary<string, Workflow> workflows;
     private readonly List<Part> parts;
 
@@ -97,10 +43,31 @@ public class Solution
 
     public object PartTwo()
     {
-        return "Not implemented yet";
+        var acceptedPile = new List<(Part, Part)>();
+        var min = new Part(1, 1, 1, 1);
+        var max = new Part(4000, 4000, 4000, 4000);
+        var s = new Queue<(Part, Part, string)>();
+        s.Enqueue((min, max, "in"));
+        while (s.Count > 0)
+        {
+            var (currentMin, currentMax, dest) = s.Dequeue();
+            var results = workflows[dest].GetPossibilities(currentMin, currentMax);
+            foreach (var (newMin, newMax, newDest) in results)
+            {
+                if(newDest is "A") acceptedPile.Add((newMin, newMax));
+                if (newDest is "A" or "R") continue;
+                s.Enqueue((newMin, newMax, newDest));
+            }
+        }
+
+        return acceptedPile.Sum(it =>
+            (it.Item2.X - it.Item1.X + 1) 
+            * (it.Item2.M - it.Item1.M + 1) 
+            * (it.Item2.A - it.Item1.A + 1) 
+            * (it.Item2.S - it.Item1.S + 1));
     }
 
-    private static int ScorePart(Part part)
+    private static long ScorePart(Part part)
     {
         return part.X + part.M + part.A + part.S;
     }
